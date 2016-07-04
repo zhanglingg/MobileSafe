@@ -1,6 +1,7 @@
 package com.lin.mobilesafe.view;
 
 
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -10,9 +11,13 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
+
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.util.LruCache;
 import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
@@ -54,7 +59,6 @@ public class SplashActivity extends Activity {
 //        Bitmap bitmap = BitmapFactory.decodeFile("");
 //        bitmap.recycle();
 
-        checkVersion(); // 检查服务器版本
     }
 
     private void initData() {
@@ -86,6 +90,7 @@ public class SplashActivity extends Activity {
             @Override
             public void run() {
                 try {
+
                     URL url = new URL("http://192.168.32.118:8080/safeversion.json");
 
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -132,8 +137,7 @@ public class SplashActivity extends Activity {
             // 处理消息
             switch (msg.what) {
                 case LOADMAIN:
-                    Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
-                    startActivity(intent);
+                    loadHome();
                     break;
                 case SHOWUPDATEALOG:
                     // 显示更新版本对话框
@@ -144,6 +148,12 @@ public class SplashActivity extends Activity {
             }
         }
     };
+
+    private void loadHome() {
+        Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
+        startActivity(intent);
+        finish();
+    }
 
     /**
      * 显示是否更新对话框
@@ -163,8 +173,7 @@ public class SplashActivity extends Activity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         // 进入主界面
-                        Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
-                        startActivity(intent);
+                        loadHome();
                     }
                 });
         builder.show();
@@ -172,8 +181,11 @@ public class SplashActivity extends Activity {
 
     private void isNewVersion(UrlBean urlBean) {
 
-        String serverCode = urlBean.getVersionCode();
-        if (serverCode.equals(versionCode)) {
+        String serverCode = urlBean.getVersionCode().trim();
+
+
+
+        if (serverCode.equals(versionCode+"")) {
             // 进入主界面
             Message msg = Message.obtain();
             msg.what = LOADMAIN;
@@ -182,6 +194,7 @@ public class SplashActivity extends Activity {
             /**
              * 有新版本更新，显示新版本的描述信息，让用户点击是否更新
              */
+            Log.e("version","service:"+serverCode+"   :verionCode:"+versionCode);
             Message msg = Message.obtain();
             msg.what = SHOWUPDATEALOG;
             handler.sendMessage(msg);
@@ -224,7 +237,28 @@ public class SplashActivity extends Activity {
         animationSet.addAnimation(rotateAnimation);
         animationSet.addAnimation(scaleAnimation);
 
+        //sObjectAnimator objectAnimator = new ObjectAnimator();
+
+        animationSet.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                checkVersion(); // 检查服务器版本
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
         ObjectAnimator objectAnimator = new ObjectAnimator();
+        objectAnimator.addListener(new AnimatorListenerAdapter() {
+        });
 
         rl_Root.setAnimation(animationSet);
 
