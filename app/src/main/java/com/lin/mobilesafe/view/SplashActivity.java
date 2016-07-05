@@ -8,25 +8,34 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.SystemClock;
-
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.util.LruCache;
+import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lin.mobilesafe.R;
 import com.lin.mobilesafe.domain.UrlBean;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,6 +52,14 @@ public class SplashActivity extends Activity {
     private UrlBean urlBean;
     private int versionCode;
     private String versionName;
+    private TextView tv_splash_version;
+    private ProgressBar pb_download;
+    private TextView tv_download;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +76,9 @@ public class SplashActivity extends Activity {
 //        Bitmap bitmap = BitmapFactory.decodeFile("");
 //        bitmap.recycle();
 
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     private void initData() {
@@ -73,10 +93,19 @@ public class SplashActivity extends Activity {
             // 版本名字
             versionName = packageInfo.versionName;
 
+            tv_splash_version.setText(versionName);
+
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 常见错误情况
+     * 1.没有网络
+     * 2.找不到资源
+     * 3.json数据格式错误
+     */
 
     private void checkVersion() {
         // 访问服务器，获取数据Url
@@ -91,7 +120,7 @@ public class SplashActivity extends Activity {
             public void run() {
                 try {
 
-                    URL url = new URL("http://192.168.32.118:8080/safeversion.json");
+                    URL url = new URL("http://192.168.32.138:8080/safeversion.json");
 
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setReadTimeout(5000);
@@ -108,8 +137,9 @@ public class SplashActivity extends Activity {
                         StringBuilder builder = new StringBuilder();
                         String jsonString = reader.readLine();
 
-                        if (jsonString != null) {
+                        while (jsonString != null) {
                             builder.append(jsonString);
+                            jsonString = reader.readLine();
                         }
 
                         Log.e("zl", builder + "");
@@ -161,12 +191,21 @@ public class SplashActivity extends Activity {
     private void showUpdateDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
+        // 让用禁止取消操作 或者 定义取消事件
+        // builder.setCancelable(false);
         builder.setTitle("提醒")
                 .setMessage("请更新到新版本" + urlBean.getDesc())
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        loadHome();
+                    }
+                })
                 .setPositiveButton("更新", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // 跟新APK
+                        // 访问网络，下载更新APK
+                        downLoadNewApk();
                     }
                 })
                 .setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -179,13 +218,70 @@ public class SplashActivity extends Activity {
         builder.show();
     }
 
+    private void downLoadNewApk() {
+
+        HttpUtils utils = new HttpUtils();
+        // urlBean.getUrl()下载的url
+        // target 本地路径
+        utils.download(urlBean.getUrl(), "mnt/sdcard/xx1.apk", new RequestCallBack<File>() {
+
+            @Override
+            public void onLoading(long total, long current, boolean isUploading) {
+                pb_download.setVisibility(View.VISIBLE);
+                tv_download.setVisibility(View.VISIBLE);
+                pb_download.setMax((int) total);
+                pb_download.setProgress((int) current);
+                int progress = (int) (current * 100 / total);
+                tv_download.setText(progress + "%");
+
+                super.onLoading(total, current, isUploading);
+            }
+
+            @Override
+            public void onSuccess(ResponseInfo<File> responseInfo) {
+                // 下载成功
+                // 在主线程中执行
+                Toast.makeText(getApplicationContext(), "下载成功", Toast.LENGTH_LONG).show();
+                Log.e("zl", "下载成功");
+                // 安装apk
+                installApk();
+                pb_download.setVisibility(View.GONE);
+                tv_download.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onFailure(HttpException e, String s) {
+                // 下载失败
+                Toast.makeText(getApplicationContext(), "下载失败", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /**
+     * 安装APK
+     */
+    private void installApk() {
+        // 拷贝上层源码packageinstall的清单文件
+        Intent intent = new Intent("android.intent.action.VIEW");
+        intent.addCategory("android.intent.category.DEFAULT");
+        String type = "application/vnd.android.package-archive";
+        Uri data = Uri.fromFile(new File("mnt/sdcard/xx1.apk"));
+        intent.setDataAndType(data, type);
+        startActivityForResult(intent, 0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // 如果用户取消更新Apk，那么直接进入主页面
+        loadHome();
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
     private void isNewVersion(UrlBean urlBean) {
 
         String serverCode = urlBean.getVersionCode().trim();
 
-
-
-        if (serverCode.equals(versionCode+"")) {
+        if (serverCode.equals(versionCode + "")) {
             // 进入主界面
             Message msg = Message.obtain();
             msg.what = LOADMAIN;
@@ -194,7 +290,7 @@ public class SplashActivity extends Activity {
             /**
              * 有新版本更新，显示新版本的描述信息，让用户点击是否更新
              */
-            Log.e("version","service:"+serverCode+"   :verionCode:"+versionCode);
+            Log.e("version", "service:" + serverCode + "   :verionCode:" + versionCode);
             Message msg = Message.obtain();
             msg.what = SHOWUPDATEALOG;
             handler.sendMessage(msg);
@@ -204,6 +300,10 @@ public class SplashActivity extends Activity {
 
     private void initView() {
         rl_Root = (RelativeLayout) findViewById(R.id.rl_splash_root);
+        tv_splash_version = (TextView) findViewById(R.id.tv_splash_version);
+        pb_download = (ProgressBar) findViewById(R.id.pb_download_progress);
+        tv_download = (TextView) findViewById(R.id.tv_download_progress);
+
     }
 
     private void initAnimation() {
@@ -261,7 +361,6 @@ public class SplashActivity extends Activity {
         });
 
         rl_Root.setAnimation(animationSet);
-
 
     }
 }
