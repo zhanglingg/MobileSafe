@@ -1,6 +1,7 @@
 package com.lin.mobilesafe.view;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +20,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.lin.mobilesafe.R;
+import com.lin.mobilesafe.utils.MD5Utils;
+import com.lin.mobilesafe.utils.MyConstants;
+import com.lin.mobilesafe.utils.SpTools;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -62,6 +66,11 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void showSettingDialog() {
+
+        final String password = SpTools.getString(getApplicationContext(), MyConstants.PASSWORD, "");
+
+        Log.e("SpPassword",password);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = View.inflate(getApplicationContext(), R.layout.dialog_setting_password, null);
 
@@ -70,6 +79,12 @@ public class HomeActivity extends AppCompatActivity {
 
         Button btn_setPsw = (Button) view.findViewById(R.id.btn_setting_password);
         Button btn_cancelPsw = (Button) view.findViewById(R.id.btn_setting_password_cancel);
+
+        if (!"".equals(password)) {
+            et_passtwo.setVisibility(View.GONE);
+            btn_setPsw.setText("输入密码");
+            btn_cancelPsw.setText("取消输入");
+        }
 
         builder.setView(view);
 
@@ -83,7 +98,22 @@ public class HomeActivity extends AppCompatActivity {
         btn_setPsw.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 String passone = et_passone.getText().toString().trim();
+
+                if (!"".equals(password)) {
+                    if (!MD5Utils.md5(passone).equals(password)) {
+                        Toast.makeText(getApplicationContext(),"密码错误",Toast.LENGTH_SHORT).show();
+                        return;
+                    }else{
+                        Toast.makeText(getApplicationContext(),"密码输入成功",Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        Intent intent = new Intent(HomeActivity.this, LostFindActivity.class);
+                        startActivity(intent);
+                        return;
+                    }
+                }
+
                 String passtwo = et_passtwo.getText().toString().trim();
 
                 if (TextUtils.isEmpty(passone) || TextUtils.isEmpty(passtwo)) {
@@ -94,7 +124,13 @@ public class HomeActivity extends AppCompatActivity {
                     return;
                 } else {
                     // 保存密码到sp中
-                    Log.e("zl","保存密码");
+                    Log.e("zl", "保存密码");
+                    // 对密码进行加密MD5 (银行加密十次以上)
+                    String pass = MD5Utils.md5(passone);
+                    Log.e("MD5", pass);
+
+                    SpTools.putString(getApplicationContext(), MyConstants.PASSWORD, pass);
+
                     dialog.dismiss();
                 }
             }
