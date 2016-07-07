@@ -23,10 +23,6 @@ public class Setup2Activity extends BaseSetupActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        initView();
-        initEvent();
-        initData();
-
     }
 
     @Override

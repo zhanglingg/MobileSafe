@@ -20,11 +20,11 @@ public abstract class BaseSetupActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getSupportActionBar().hide();
 
         initView();
         initData();
         initEvent();
-
         initGesture(); // 初始化手势识别器,,,要绑定Ontouch事件
 
     }

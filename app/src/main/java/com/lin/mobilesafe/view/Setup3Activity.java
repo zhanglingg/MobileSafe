@@ -1,5 +1,6 @@
 package com.lin.mobilesafe.view;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -18,8 +19,6 @@ public class Setup3Activity extends BaseSetupActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initView();
-        initData();
     }
 
     @Override
@@ -51,9 +50,8 @@ public class Setup3Activity extends BaseSetupActivity {
     public void next(View view) {
         // 保存安全号码
         // 不存在安全号码，不进行下一步
-
         String safe_Number = et_safeNumber.getText().toString().trim();
-        if(TextUtils.isEmpty(safe_Number)){
+        if (TextUtils.isEmpty(safe_Number)) {
             return;
         }
 
@@ -63,7 +61,17 @@ public class Setup3Activity extends BaseSetupActivity {
     }
 
     public void selectSafeNumber(View view) {
+        Intent intent = new Intent(this, MyFriendActivity.class);
+        startActivityForResult(intent, 1);
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK && data != null) {
+            Bundle bundle = data.getExtras();
+            et_safeNumber.setText(bundle.getString("phone"));
+        }
 
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

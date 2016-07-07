@@ -14,6 +14,7 @@ public class Setup1Activity extends BaseSetupActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setup1);
+
     }
 
     @Override
