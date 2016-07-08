@@ -58,12 +58,16 @@ public class LostFindService extends Service {
 
             for (Object data : datas) {
                 SmsMessage sm = SmsMessage.createFromPdu((byte[]) data, format);
-                if (sm == null) {
-                    Log.e("zl", "null");
-                } else {
-                    Log.e("zl", "no null" + sm.getMessageBody());
+                String mess = sm.getMessageBody();
+
+                Log.e("msg", "content:" + mess + "  from：" + sm.getDisplayOriginatingAddress());
+
+                if (mess.equals("#*gps*#")) {
+                    // 获取位置信息， 为了准确，把耗时的定位放在服务中
+                    Intent service = new Intent(context,LocationService.class);
+                    startService(service);
+                    abortBroadcast();
                 }
-                Log.e("msg", "content:" + sm.getMessageBody()+"  from：" + sm.getDisplayOriginatingAddress());
             }
 
         }

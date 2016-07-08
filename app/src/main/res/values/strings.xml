@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MobileSafe</string>
+    <string name="sample_device_admin">deviceAdmin</string>
+    <string name="sample_device_admin_description">description</string>
 </resources>
