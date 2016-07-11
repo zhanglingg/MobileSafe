@@ -2,4 +2,8 @@
     <string name="app_name">MobileSafe</string>
     <string name="sample_device_admin">deviceAdmin</string>
     <string name="sample_device_admin_description">description</string>
+
+    <string name="action_settings1">Settings</string>
+    <string name="action_settings2">Update</string>
+    <string name="action_settings3">Delete</string>
 </resources>

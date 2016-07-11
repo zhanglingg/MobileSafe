@@ -120,7 +120,7 @@ public class SplashActivity extends Activity {
             public void run() {
                 try {
 
-                    URL url = new URL("http://192.168.32.138:8080/safeversion.json");
+                    URL url = new URL("http://192.168.32.171:8080/safeversion.json");
 
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setReadTimeout(5000);

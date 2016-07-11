@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/tv_settingcenter_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="自动更新设置" />
+
+        <TextView
+            android:id="@+id/tv_settingcenter_autoupdate_content"
+            android:layout_width="wrap_content"
+            android:layout_below="@+id/tv_settingcenter_title"
+            android:layout_height="wrap_content"
+            android:text="自动更新已经关闭" />
+
+        <CheckBox
+            android:id="@+id/cb_settingcenter_autoupdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="8dp" />
+
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+
+        android:layout_marginTop="10dp"
+        android:background="#f00" />
+
+
+</LinearLayout>

@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.lin.mobilesafe.R;
 import com.lin.mobilesafe.utils.MyConstants;
+import com.lin.mobilesafe.utils.SimpleCiphertext;
 import com.lin.mobilesafe.utils.SpTools;
 
 public class Setup3Activity extends BaseSetupActivity {
@@ -42,7 +43,8 @@ public class Setup3Activity extends BaseSetupActivity {
 
     @Override
     public void initData() {
-        et_safeNumber.setText(SpTools.getString(getApplicationContext(), MyConstants.SAFE_NUMBER, ""));
+        et_safeNumber.setText(SimpleCiphertext.encryptOrdecrypt(MyConstants.SEED,
+                SpTools.getString(getApplicationContext(), MyConstants.SAFE_NUMBER, "")));
         super.initData();
     }
 
@@ -51,10 +53,12 @@ public class Setup3Activity extends BaseSetupActivity {
         // 保存安全号码
         // 不存在安全号码，不进行下一步
         String safe_Number = et_safeNumber.getText().toString().trim();
+
         if (TextUtils.isEmpty(safe_Number)) {
             return;
         }
 
+        safe_Number = SimpleCiphertext.encryptOrdecrypt(MyConstants.SEED, safe_Number);
         SpTools.putString(getApplicationContext(), MyConstants.SAFE_NUMBER, safe_Number);
 
         super.next(view);

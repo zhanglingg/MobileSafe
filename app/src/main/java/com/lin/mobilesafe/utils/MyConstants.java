@@ -13,4 +13,6 @@ public interface MyConstants {
     String SIM = "sim";
 
     String SAFE_NUMBER = "safenumber";
+
+    int SEED = 123;
 }

@@ -58,6 +58,10 @@ public class HomeActivity extends AppCompatActivity {
                         // 自定义对话框
                         showSettingDialog();
                         break;
+                    case 8: // 设置中心
+                        Intent intent = new Intent(HomeActivity.this, SettingCenterActivity.class);
+                        startActivity(intent);
+                        break;
                     default:
                         break;
                 }
