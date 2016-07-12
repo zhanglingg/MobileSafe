@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -33,6 +34,10 @@ import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lin.mobilesafe.R;
 import com.lin.mobilesafe.domain.UrlBean;
+import com.lin.mobilesafe.utils.MyConstants;
+import com.lin.mobilesafe.utils.SpTools;
+
+import org.json.JSONException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -47,6 +52,7 @@ public class SplashActivity extends Activity {
 
     private static final int LOADMAIN = 1;      // 加载主界面
     private static final int SHOWUPDATEALOG = 2;//
+    private static final int RUNTIMEERROR = 3;
     private RelativeLayout rl_Root;
 
     private UrlBean urlBean;
@@ -55,11 +61,6 @@ public class SplashActivity extends Activity {
     private TextView tv_splash_version;
     private ProgressBar pb_download;
     private TextView tv_download;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,9 +77,16 @@ public class SplashActivity extends Activity {
 //        Bitmap bitmap = BitmapFactory.decodeFile("");
 //        bitmap.recycle();
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+
+    /**
+     * 耗时操作放在此方法中
+     * 例如：版本的检测 ； 加载本地或网络数据
+     */
+    private void timeInit() {
+        if (SpTools.getBoolean(getApplicationContext(), MyConstants.AUTOUPDATE, false)) {
+            checkVersion(); // 检查服务器版本
+        }
     }
 
     private void initData() {
@@ -118,11 +126,14 @@ public class SplashActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                HttpURLConnection connection = null;
+                BufferedReader reader = null;
+                int errorCode = -1;
                 try {
 
                     URL url = new URL("http://192.168.32.171:8080/safeversion.json");
 
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection = (HttpURLConnection) url.openConnection();
                     connection.setReadTimeout(5000);
                     connection.setConnectTimeout(5000);
                     connection.setRequestMethod("GET");
@@ -132,7 +143,7 @@ public class SplashActivity extends Activity {
 
                     if (responseCode == 200) {
                         InputStream inputStream = connection.getInputStream();
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                        reader = new BufferedReader(new InputStreamReader(inputStream));
 
                         StringBuilder builder = new StringBuilder();
                         String jsonString = reader.readLine();
@@ -149,14 +160,49 @@ public class SplashActivity extends Activity {
                         // 比较当前的版本号
                         isNewVersion(urlBean);
 
-                        reader.close();
-                        connection.disconnect();
+                    } else {
+                        Log.e("run_time_erroe", "404");
+                        errorCode = 404;
                     }
 
                 } catch (MalformedURLException e) {
+                    // 4002
+                    Log.e("run_time_erroe", "4002");
+                    errorCode = 4002;
                     e.printStackTrace();
                 } catch (IOException e) {
+                    // 4001
+                    Log.e("run_time_erroe", "4001"); // 无网络连接
+                    errorCode = 4001;
                     e.printStackTrace();
+                } catch (JSONException e) {
+                    // 4003
+                    Log.e("run_time_erroe", "4003");
+                    errorCode = 4003;
+                    e.printStackTrace();
+                } finally {
+
+                    if (errorCode == -1) {
+                        // 比较当前的版本号
+                        isNewVersion(urlBean);
+                    } else {
+                        Message msg = Message.obtain();
+                        msg.what = RUNTIMEERROR;
+                        msg.arg1 = errorCode;
+                        handler.sendMessage(msg);
+                    }
+
+
+                    if (reader == null || connection == null) {
+
+                        return;
+                    }
+                    try {
+                        reader.close();
+                        connection.disconnect();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }).start();
@@ -164,10 +210,35 @@ public class SplashActivity extends Activity {
 
     private Handler handler = new Handler() {
         public void handleMessage(Message msg) {
+            String pointsOut = "";
             // 处理消息
             switch (msg.what) {
                 case LOADMAIN:
                     loadHome();
+                    break;
+                case RUNTIMEERROR:
+                    switch (msg.arg1) {
+                        case 404:
+                            pointsOut = "找不到更新资源";
+                            break;
+                        case 4001:
+                            pointsOut = "无网络连接";
+                            break;
+                        case 4003:
+                            pointsOut = "json格式错误";
+                            break;
+                        default:
+                            break;
+                    }
+                    Snackbar.make(rl_Root, pointsOut, Snackbar.LENGTH_LONG)
+                            .setCallback(new Snackbar.Callback() {
+                                @Override
+                                public void onDismissed(Snackbar snackbar, int event) {
+                                    super.onDismissed(snackbar, event);
+                                    loadHome();
+                                }
+                            })
+                            .show();
                     break;
                 case SHOWUPDATEALOG:
                     // 显示更新版本对话框
@@ -342,12 +413,15 @@ public class SplashActivity extends Activity {
         animationSet.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-
+                timeInit();
             }
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                checkVersion(); // 检查服务器版本
+                if (!SpTools.getBoolean(getApplicationContext(), MyConstants.AUTOUPDATE, false)) {
+                    loadHome();
+                }
+
             }
 
             @Override

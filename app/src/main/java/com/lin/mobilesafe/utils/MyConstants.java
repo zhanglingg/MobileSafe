@@ -15,4 +15,6 @@ public interface MyConstants {
     String SAFE_NUMBER = "safenumber";
 
     int SEED = 123;
+
+    String AUTOUPDATE = "autoupdate";
 }

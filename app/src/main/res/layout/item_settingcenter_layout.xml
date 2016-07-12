@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:clickable="true"
     android:orientation="vertical">
 
     <RelativeLayout
@@ -14,23 +15,22 @@
             android:id="@+id/tv_settingcenter_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="自动更新设置" />
+            android:layout_marginBottom="8dp" />
 
         <TextView
             android:id="@+id/tv_settingcenter_autoupdate_content"
             android:layout_width="wrap_content"
-            android:layout_below="@+id/tv_settingcenter_title"
             android:layout_height="wrap_content"
-            android:text="自动更新已经关闭" />
+            android:layout_below="@+id/tv_settingcenter_title" />
 
         <CheckBox
             android:id="@+id/cb_settingcenter_autoupdate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
+            android:layout_marginRight="8dp"
             android:layout_marginTop="8dp"
-            android:layout_marginRight="8dp" />
+            android:clickable="false" />
 
 
     </RelativeLayout>

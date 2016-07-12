@@ -76,7 +76,8 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".view.SettingCenterActivity"></activity>
+        <activity android:name=".view.SettingCenterActivity" />
+        <activity android:name=".view.TelSmsSafeActivity"></activity>
     </application>
 
 </manifest>
