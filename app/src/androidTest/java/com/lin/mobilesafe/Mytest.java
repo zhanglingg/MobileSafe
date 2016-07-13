@@ -1,7 +1,11 @@
 package com.lin.mobilesafe;
 
 import android.test.AndroidTestCase;
+import android.util.Log;
 
+import com.lin.mobilesafe.dao.BlackNameDao;
+import com.lin.mobilesafe.db.DBManger;
+import com.lin.mobilesafe.domain.BlackNameBean;
 import com.lin.mobilesafe.engine.ReadContactsEngine;
 import com.lin.mobilesafe.utils.ServiceUtils;
 
@@ -16,6 +20,27 @@ public class Mytest extends AndroidTestCase {
 
 
     public void testRunningService() {
-        ServiceUtils.isServiceRunning(getContext(),"");
+        ServiceUtils.isServiceRunning(getContext(), "");
     }
+
+    public void testdbManger() {
+
+        BlackNameDao blackNameDao = new BlackNameDao(getContext());
+        BlackNameBean blackNameBean2;
+
+//        for (int i = 101; i <= 200; i++) {
+//            blackNameBean2 = new BlackNameBean();
+//            blackNameBean2.setPhoneNum("15308197" + i);
+//            blackNameBean2.setMode("1");
+//
+//            blackNameDao.insertDB(blackNameBean2);
+//        }
+
+        for (BlackNameBean blackNameBean1 : blackNameDao.queryDBByLimit(0)) {
+            Log.e("tostring:", blackNameBean1.toString());
+        }
+
+        //blackNameDao.close();
+    }
+
 }

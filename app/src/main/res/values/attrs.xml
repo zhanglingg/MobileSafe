@@ -5,4 +5,9 @@
         <attr name="setting_content" format="string" />
         <attr name="setting_checked" format="boolean" />
     </declare-styleable>
+
+    <declare-styleable name="TelSmsSafeItemView">
+        <attr name="safe_phone" format="string" />
+        <attr name="safe_mode" format="string" />
+    </declare-styleable>
 </resources>

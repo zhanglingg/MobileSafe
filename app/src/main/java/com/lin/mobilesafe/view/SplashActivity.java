@@ -62,6 +62,7 @@ public class SplashActivity extends Activity {
     private ProgressBar pb_download;
     private TextView tv_download;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -374,7 +375,6 @@ public class SplashActivity extends Activity {
         tv_splash_version = (TextView) findViewById(R.id.tv_splash_version);
         pb_download = (ProgressBar) findViewById(R.id.pb_download_progress);
         tv_download = (TextView) findViewById(R.id.tv_download_progress);
-
     }
 
     private void initAnimation() {
