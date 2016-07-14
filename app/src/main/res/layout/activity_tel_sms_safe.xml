@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:lin="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.lin.mobilesafe.view.TelSmsSafeActivity">
+
+    <com.lin.mobilesafe.view.TelSmsSafeItemView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        lin:safe_mode="电话拦截-短信拦截-全部拦截"
+        lin:safe_phone="15308197174" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ProgressBar
+            android:id="@+id/pb_safe_load"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:id="@+id/tv_safe_nodata"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="20sp"
+            android:textColor="#ff0000"
+            android:text="亲! 暂时没有数据哟 ^_^" />
+
+        <ListView
+            android:visibility="gone"
+            android:id="@android:id/list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"></ListView>
+
+    </FrameLayout>
+
+
+</LinearLayout>

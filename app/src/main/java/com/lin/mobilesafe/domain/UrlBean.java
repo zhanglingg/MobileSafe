@@ -36,8 +36,8 @@ public class UrlBean {
      * 解析从服务器获取的json数据
      * @param jsonString
      */
-    public void parseJson(StringBuilder jsonString) {
-        try {
+    public void parseJson(StringBuilder jsonString) throws JSONException {
+
 
             // 把json字符串封装成json、对象
             JSONObject jsonObject = new JSONObject(jsonString+"");
@@ -46,8 +46,6 @@ public class UrlBean {
             url = jsonObject.getString("url");
             desc = jsonObject.getString("desc");
 
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+
     }
 }

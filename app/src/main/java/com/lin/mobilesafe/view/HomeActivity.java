@@ -52,11 +52,20 @@ public class HomeActivity extends AppCompatActivity {
         gv_menus.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = null;
                 // 判断点击位置
                 switch (position) {
                     case 0: // 手机防盗
                         // 自定义对话框
                         showSettingDialog();
+                        break;
+                    case 1: // 通讯卫士
+                        intent = new Intent(HomeActivity.this, TelSmsSafeActivity.class);
+                        startActivity(intent);
+                        break;
+                    case 8: // 设置中心
+                        intent = new Intent(HomeActivity.this, SettingCenterActivity.class);
+                        startActivity(intent);
                         break;
                     default:
                         break;

@@ -15,6 +15,7 @@ import android.telephony.SmsManager;
 import android.util.Log;
 
 import com.lin.mobilesafe.utils.MyConstants;
+import com.lin.mobilesafe.utils.SimpleCiphertext;
 import com.lin.mobilesafe.utils.SpTools;
 
 import java.util.List;
@@ -57,6 +58,10 @@ public class LocationService extends Service {
 
                 // 发送短信
                 String safeNumber = SpTools.getString(getApplicationContext(), MyConstants.SAFE_NUMBER, "");
+                safeNumber = SimpleCiphertext.encryptOrdecrypt(MyConstants.SEED,safeNumber);
+
+                Log.e("safeNumber", safeNumber);
+
                 SmsManager smsManager = SmsManager.getDefault();
                 smsManager.sendTextMessage(safeNumber, "", locationInfo.toString(), null, null);
 

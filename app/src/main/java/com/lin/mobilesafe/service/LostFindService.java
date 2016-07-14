@@ -64,7 +64,7 @@ public class LostFindService extends Service {
 
                 if (mess.equals("#*gps*#")) {
                     // 获取位置信息， 为了准确，把耗时的定位放在服务中
-                    Intent service = new Intent(context,LocationService.class);
+                    Intent service = new Intent(context, LocationService.class);
                     startService(service);
                     abortBroadcast();
                 }

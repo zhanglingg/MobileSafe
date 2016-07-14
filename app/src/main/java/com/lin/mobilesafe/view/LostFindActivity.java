@@ -2,14 +2,19 @@ package com.lin.mobilesafe.view;
 
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.lin.mobilesafe.R;
@@ -17,14 +22,18 @@ import com.lin.mobilesafe.receiver.DeviceAdminSample;
 import com.lin.mobilesafe.service.LostFindService;
 import com.lin.mobilesafe.utils.MyConstants;
 import com.lin.mobilesafe.utils.ServiceUtils;
+import com.lin.mobilesafe.utils.SimpleCiphertext;
 import com.lin.mobilesafe.utils.SpTools;
 
 public class LostFindActivity extends AppCompatActivity {
+
 
     private TextView tv_safenum;
     private ImageView iv_isopen;
     private TextView tv_reset;
     DevicePolicyManager mDPM;
+    private PopupWindow pw;
+    private View viewContent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +42,7 @@ public class LostFindActivity extends AppCompatActivity {
         if (SpTools.getBoolean(getApplicationContext(), MyConstants.ISSETTING, false)) {
             // 设置过
             initView();
+            initPopWindowView();
             initData();
             initEvent();
 
@@ -51,6 +61,9 @@ public class LostFindActivity extends AppCompatActivity {
     private void initView() {
         setContentView(R.layout.activity_lost_find);
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         tv_safenum = (TextView) findViewById(R.id.tv_lostfind_safenumber);
         iv_isopen = (ImageView) findViewById(R.id.iv_lostfind_isopen);
         tv_reset = (TextView) findViewById(R.id.tv_lostfind_reset);
@@ -59,7 +72,16 @@ public class LostFindActivity extends AppCompatActivity {
 
     private void initData() {
 
-        tv_safenum.setText(SpTools.getString(getApplicationContext(), MyConstants.SAFE_NUMBER, "--"));
+        String safeNumber = SpTools.getString(getApplicationContext(), MyConstants.SAFE_NUMBER, "--");
+        safeNumber = SimpleCiphertext.encryptOrdecrypt(MyConstants.SEED, safeNumber);
+
+        byte[] bytes = safeNumber.getBytes();
+        for (int i = 3; i < 7; i++) {
+            bytes[i] = '*';
+        }
+        safeNumber = new String(bytes);
+
+        tv_safenum.setText(safeNumber);
 
         if (ServiceUtils.isServiceRunning(getApplicationContext(), "com.lin.mobilesafe.service.LostFindService")) {
             // 服务在运行
@@ -67,6 +89,7 @@ public class LostFindActivity extends AppCompatActivity {
         } else {
             iv_isopen.setImageResource(R.mipmap.off_button);
         }
+        pw.setFocusable(true);
     }
 
     private void initEvent() {
@@ -92,6 +115,13 @@ public class LostFindActivity extends AppCompatActivity {
                 Intent intent = new Intent(LostFindActivity.this, Setup1Activity.class);
                 startActivity(intent);
                 finish();
+            }
+        });
+
+        viewContent.findViewById(R.id.pop_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pw.dismiss();
             }
         });
     }
@@ -124,4 +154,53 @@ public class LostFindActivity extends AppCompatActivity {
 //        mp.start();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings1) {
+            Snackbar.make(tv_safenum, "action_settings1", Snackbar.LENGTH_LONG)
+                    .setAction("Undo", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Log.e("zl", "action_settings1确定");
+                        }
+                    })
+                    .setDuration(3000)
+                    .show();
+
+            int[] location = new int[2];
+
+            pw.showAtLocation(tv_safenum, Gravity.CENTER,
+                    location[0], location[1]);
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void initPopWindowView() {
+        viewContent = View.inflate(getApplicationContext(), R.layout.layout_popwindow, null);
+        pw = new PopupWindow(viewContent, ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    @Override
+    protected void onDestroy() {
+        pw.dismiss();
+        pw = null;
+        super.onDestroy();
+    }
 }
